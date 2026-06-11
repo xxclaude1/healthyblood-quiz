@@ -594,6 +594,30 @@ details[open] .pdp-spec-chev{transform:rotate(180deg)}
 <div class="sticky-bottom" id="sticky-bottom"><div class="sticky-bottom-inner"><a href="https://www.tryhealthyblood.com/pages/k-page" class="sticky-bottom-btn">Get Healthy Blood Now &rarr;</a></div></div>
 
 <script>
+/* ===== Healthy Blood quiz analytics — feeds healthyblood-quiz-analytics dashboard ===== */
+(function(){
+  var BASE='https://healthyblood-quiz-analytics.netlify.app/.netlify/functions';
+  var sid; try{sid=sessionStorage.getItem('hb_quiz_sid');}catch(e){}
+  if(!sid){sid=Math.random().toString(36).slice(2)+Date.now().toString(36);try{sessionStorage.setItem('hb_quiz_sid',sid);}catch(e){}}
+  function post(path,body){try{fetch(BASE+path,{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,body:JSON.stringify(body)}).catch(function(){});}catch(e){}}
+  function track(type,p){p=p||{};var b={session_id:sid,type:type,referrer:document.referrer||''};
+    if(p.screen)b.screen=p.screen; if(p.branch)b.branch=p.branch;
+    if(p.answer_key){b.answer_key=p.answer_key; b.answer_value=p.answer_value;}
+    if(p.cta_id)b.cta_id=p.cta_id; if(p.label)b.label=p.label; if(p.method)b.method=p.method;
+    post('/track',b);}
+  window.__HB_TRACK__=track;
+  track('screen_view',{screen:'screen-2'});                 // first screen on load
+  setInterval(function(){post('/heartbeat',{session_id:sid});},15000);
+  /* Centralized CTA + exit tracking (no per-button edits needed) */
+  document.addEventListener('click',function(e){
+    var a=e.target&&e.target.closest?e.target.closest('.pdp-atc-btn,.sticky-bottom-btn,#see-results-btn'):null;
+    if(!a)return;
+    var id=a.id==='see-results-btn'?'see-results':(a.classList.contains('sticky-bottom-btn')?'sticky-cta':'pdp-atc');
+    track('cta_click',{cta_id:id,label:(a.textContent||'').trim().slice(0,40)});
+  },true);
+  window.addEventListener('pagehide',function(){try{navigator.sendBeacon&&navigator.sendBeacon(BASE+'/track',JSON.stringify({session_id:sid,type:'abandon'}));}catch(e){}});
+})();
+
 (function(){
 var A={},H=['screen-2','screen-q1','screen-q2','screen-q3','screen-q4','screen-q5','screen-q6','screen-q7','screen-analysis','screen-results'],cur='screen-2',hist=['screen-2'];
 var PB=document.getElementById('progress-bar'),SB=document.getElementById('sticky-bottom');
@@ -606,7 +630,9 @@ function goTo(id){
   setTimeout(function(){c.classList.remove('active');var n=document.getElementById(id);n.classList.add('active');
   requestAnimationFrame(function(){requestAnimationFrame(function(){n.classList.add('visible');});});
   cur=id;hist.push(id);updateProgress();window.scrollTo({top:0,behavior:'smooth'});
-  if(id==='screen-analysis')runAnalysis();if(id==='screen-results')buildResults();},280);
+  try{window.__HB_TRACK__('screen_view',{screen:id});}catch(e){}
+  if(id==='screen-analysis')runAnalysis();
+  if(id==='screen-results'){buildResults();try{window.__HB_TRACK__('complete',{});}catch(e){}}},280);
 }
 function goBack(){if(hist.length<=1)return;hist.pop();var prev=hist[hist.length-1];var c=document.getElementById(cur);c.classList.remove('visible');
 setTimeout(function(){c.classList.remove('active');var n=document.getElementById(prev);n.classList.add('active');requestAnimationFrame(function(){requestAnimationFrame(function(){n.classList.add('visible');});});cur=prev;updateProgress();window.scrollTo({top:0,behavior:'smooth'});},280);}
@@ -615,9 +641,9 @@ function getNext(fid){var a=getActive(),i=a.indexOf(fid);return i<a.length-1?a[i
 document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',goBack);});
 
 // Gender
-document.querySelectorAll('[data-gender]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-gender]').forEach(function(g){g.classList.remove('selected');});this.classList.add('selected');A.gender=this.dataset.gender;document.getElementById('age-band').hidden=false;});});
+document.querySelectorAll('[data-gender]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-gender]').forEach(function(g){g.classList.remove('selected');});this.classList.add('selected');A.gender=this.dataset.gender;document.getElementById('age-band').hidden=false;try{window.__HB_TRACK__('answer',{answer_key:'gender',answer_value:this.dataset.gender});}catch(e){}});});
 // Age
-document.querySelectorAll('[data-age]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-age]').forEach(function(a){a.classList.remove('selected');});this.classList.add('selected');A.age=this.dataset.age;setTimeout(function(){goTo(getNext('screen-2'));},400);});});
+document.querySelectorAll('[data-age]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-age]').forEach(function(a){a.classList.remove('selected');});this.classList.add('selected');A.age=this.dataset.age;try{window.__HB_TRACK__('answer',{answer_key:'age',answer_value:this.dataset.age});}catch(e){}setTimeout(function(){goTo(getNext('screen-2'));},400);});});
 
 // Option cards - select + show flash + reveal continue (NO auto-advance)
 document.querySelectorAll('.option-card[data-question]').forEach(function(card){
@@ -625,6 +651,8 @@ document.querySelectorAll('.option-card[data-question]').forEach(function(card){
     var q=this.dataset.question,k=this.dataset.key,scr=this.closest('.screen');
     scr.querySelectorAll('.option-card[data-question="'+q+'"]').forEach(function(c){c.classList.remove('selected');});
     this.classList.add('selected');A[q]=k;
+    try{window.__HB_TRACK__('answer',{answer_key:q,answer_value:k});
+        if(q==='q1')window.__HB_TRACK__('branch_set',{branch:k});}catch(e){}
     scr.querySelectorAll('.flash').forEach(function(f){f.classList.remove('show');});
     var fl=scr.querySelector('.flash[data-flash-for="'+k+'"]');if(fl)fl.classList.add('show');
     var btn=scr.querySelector('[data-continue]');if(btn)btn.classList.add('revealed');
@@ -638,6 +666,7 @@ document.querySelectorAll('.checkbox-item').forEach(function(item){
     if(exc){grp.querySelectorAll('.checkbox-item').forEach(function(i){i.classList.remove('checked');});this.classList.add('checked');}
     else{var ex=grp.querySelector('[data-exclusive]');if(ex)ex.classList.remove('checked');this.classList.toggle('checked');}
     var checked=[];grp.querySelectorAll('.checkbox-item.checked').forEach(function(i){checked.push(i.dataset.key);});A[q]=checked;
+    try{window.__HB_TRACK__('answer',{answer_key:q,answer_value:checked.join(', ')});}catch(e){}
     var btn=this.closest('.screen').querySelector('[data-continue]');if(btn){if(checked.length>0)btn.classList.add('revealed');else btn.classList.remove('revealed');}
     if(q==='q3'&&checked.length>0&&checked.indexOf('none')===-1){var fl=document.getElementById('flash-q3');if(fl)fl.classList.add('show');}
   });
@@ -724,8 +753,7 @@ document.querySelectorAll('.pdp-thumb').forEach(function(t){t.addEventListener('
 // FAQ
 document.querySelectorAll('.faq-q').forEach(function(q){q.addEventListener('click',function(){var item=this.closest('.faq-item'),open=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open');i.querySelector('.faq-q').setAttribute('aria-expanded','false');i.querySelector('.faq-a').hidden=true;});if(!open){item.classList.add('open');this.setAttribute('aria-expanded','true');item.querySelector('.faq-a').hidden=false;}});});
 
-// Track
-try{navigator.sendBeacon&&navigator.sendBeacon('https://healthyblood-dashboard.netlify.app/.netlify/functions/track',JSON.stringify({event:'quiz_load',site:'healthyblood-quiz',ts:Date.now()}));}catch(e){}
+// (Analytics handled by the __HB_TRACK__ module at the top of this script.)
 })();
 </script>
 </body>
