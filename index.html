@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HealthyBlood Quiz</title>
+<meta name="description" content="Heart surgeon Dr. Steven Gundry has helped 10,000+ patients. Take the free 60-second assessment to find out if your current cholesterol approach is actually protecting you.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.shopify.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1b2a4a;--navy-soft:#253d5e;--navy-tint:#f0f3f7;--copper:#b87333;--copper-soft:#d99a5f;--copper-light:#f5ead4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;--gray-900:#111827;--red:#dc2626;--green:#16a34a;--green-dark:#15803d;--amber:#d97706;--white:#fff;--shadow-sm:0 1px 2px rgba(0,0,0,.06);--shadow:0 2px 8px rgba(0,0,0,.08);--shadow-md:0 4px 16px rgba(0,0,0,.10);--shadow-lg:0 8px 30px rgba(0,0,0,.12);--radius:12px;--radius-sm:8px;--radius-lg:16px;--font-sans:'Inter',system-ui,-apple-system,sans-serif;--font-serif:'Lora',Georgia,'Times New Roman',serif;--transition:all .25s cubic-bezier(.4,0,.2,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;font-size:16px}
+body{font-family:var(--font-sans);color:var(--gray-800);background:#fff;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}
+img{max-width:100%;display:block}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+a{color:inherit;text-decoration:none}
+
+.progress-wrap{position:fixed;top:0;left:0;width:100%;height:4px;background:var(--gray-200);z-index:9999}
+.progress-bar{height:100%;width:0%;background:var(--navy);border-radius:0 2px 2px 0;transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+.quiz-wrap{max-width:680px;margin:0 auto;padding:24px 20px 120px;min-height:100vh;position:relative}
+
+.screen{display:none;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+.screen.active{display:block}
+.screen.active.visible{opacity:1;transform:translateY(0)}
+
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--gray-500);padding:8px 4px;margin-bottom:12px;transition:var(--transition);border-radius:6px}
+.back-btn:hover{color:var(--gray-700);background:var(--gray-100)}
+.back-btn svg{width:16px;height:16px;flex-shrink:0}
+
+.q-counter{text-align:center;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-400);margin-bottom:16px;display:block}
+.question-text{font-family:var(--font-serif);font-size:26px;font-weight:700;line-height:1.3;color:var(--navy);text-align:center;margin-bottom:12px}
+.q-subtitle{font-size:15px;color:var(--gray-500);text-align:center;margin-bottom:24px;line-height:1.5}
+
+.options-wrap{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+.option-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius);padding:16px 20px;font-size:15px;font-weight:500;color:var(--gray-800);cursor:pointer;transition:var(--transition);position:relative;user-select:none;-webkit-user-select:none;display:flex;align-items:center;gap:12px;text-align:left;width:100%;line-height:1.4}
+.option-card:hover{border-color:var(--gray-300);transform:translateY(-1px);box-shadow:var(--shadow)}
+.option-card.selected{border-color:var(--navy);background:var(--navy-tint);color:var(--navy);box-shadow:0 0 0 1px var(--navy)}
+.option-card.selected::after{content:'';position:absolute;top:50%;right:16px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--navy);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");background-size:12px;background-repeat:no-repeat;background-position:center}
+
+.checkbox-wrap{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+.checkbox-item{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius);cursor:pointer;transition:var(--transition);user-select:none;-webkit-user-select:none}
+.checkbox-item:hover{border-color:var(--gray-300);box-shadow:var(--shadow-sm)}
+.checkbox-item .cb-box{width:22px;height:22px;border:2px solid var(--gray-300);border-radius:6px;flex-shrink:0;transition:var(--transition);display:flex;align-items:center;justify-content:center}
+.checkbox-item .cb-box svg{opacity:0;transition:opacity .2s}
+.checkbox-item .cb-label{font-size:15px;font-weight:500;color:var(--gray-700);flex:1}
+.checkbox-item.checked{border-color:var(--navy);background:var(--navy-tint)}
+.checkbox-item.checked .cb-box{background:var(--navy);border-color:var(--navy)}
+.checkbox-item.checked .cb-box svg{opacity:1}
+
+.cta-btn{display:block;width:100%;padding:16px 24px;background:var(--green);color:var(--white);font-size:17px;font-weight:600;border-radius:var(--radius);text-align:center;transition:var(--transition);box-shadow:0 4px 12px rgba(22,163,74,.25);letter-spacing:.01em;line-height:1.3}
+.cta-btn:hover{background:var(--green-dark);transform:translateY(-2px);box-shadow:0 6px 20px rgba(22,163,74,.3)}
+.cta-btn:active{transform:translateY(0)}
+
+.continue-btn{opacity:0;max-height:0;overflow:hidden;pointer-events:none;transition:opacity .3s ease,max-height .35s ease,margin .3s ease;margin-top:0}
+.continue-btn.revealed{opacity:1;max-height:80px;pointer-events:auto;margin-top:16px}
+
+@keyframes flashSlideIn{0%{opacity:0;max-height:0;margin-top:0;padding:0}100%{opacity:1;max-height:500px;margin-top:14px;padding:18px}}
+.flash{background:linear-gradient(135deg,#fdf6ee 0%,#fef9f2 100%);border-left:4px solid var(--copper);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0;margin-top:0;font-size:15px;line-height:1.65;color:var(--gray-700);opacity:0;max-height:0;overflow:hidden}
+.flash.show{animation:flashSlideIn .5s cubic-bezier(.4,0,.2,1) forwards}
+.flash strong{color:var(--navy);font-weight:600}
+.flash-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--copper);margin-bottom:8px;display:block}
+.flash-navy{background:linear-gradient(135deg,var(--navy-tint) 0%,#e8ecf3 100%);border-left-color:var(--navy)}
+.flash-empathy{background:linear-gradient(135deg,#fef2f2 0%,#fff5f5 100%);border-left-color:var(--red)}
+.flash-empathy strong{color:#991b1b}
+
+.doc-card{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);margin-bottom:20px}
+.doc-card img{width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--copper-light)}
+.doc-card-body{flex:1}
+.doc-card-body strong{font-weight:700;font-size:15px;color:var(--navy);display:block}
+.doc-card-body .doc-card-title{font-size:11px;color:var(--gray-500);line-height:1.4;text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
+
+.doc-big{text-align:center;background:var(--white);border:2px solid var(--copper);border-radius:var(--radius-lg);padding:28px 24px;box-shadow:var(--shadow-md);margin-bottom:24px}
+.doc-big img{width:88px;height:88px;border-radius:50%;object-fit:cover;margin:0 auto 14px;border:3px solid var(--copper)}
+.doc-big-name{font-weight:700;font-size:17px;color:var(--navy);margin-bottom:2px}
+.doc-big-creds{font-size:12px;color:var(--gray-500);margin-bottom:14px;display:block}
+.doc-big blockquote{font-family:var(--font-serif);font-style:italic;font-size:16px;line-height:1.6;color:var(--gray-700);margin:0;padding:14px 0 0;border:none;position:relative}
+.doc-big blockquote::before{content:'\201C';font-size:44px;color:var(--copper);line-height:1;position:absolute;top:-4px;left:-2px;font-family:var(--font-serif)}
+
+.gender-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.gender-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:28px 16px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius);cursor:pointer;transition:var(--transition);user-select:none}
+.gender-card:hover{border-color:var(--gray-300);transform:translateY(-2px);box-shadow:var(--shadow)}
+.gender-card .gender-icon{font-size:36px;line-height:1}
+.gender-card .gender-label{font-size:16px;font-weight:600;color:var(--gray-700)}
+.gender-card.selected{border-color:var(--navy);background:var(--navy-tint);box-shadow:0 0 0 1px var(--navy)}
+.gender-card.selected .gender-label{color:var(--navy)}
+
+.age-band{margin-top:20px}
+.age-band-label{font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--navy);text-align:center;margin-bottom:14px}
+.age-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.age-grid .option-card{text-align:center;justify-content:center;padding:16px 10px;font-size:15px}
+
+.brand-promise{font-size:13px;color:var(--gray-400);text-align:center;margin-top:12px;font-style:italic}
+.small-text{font-size:12px;color:var(--gray-500);line-height:1.6;text-align:center;margin-top:8px}
+
+/* Analysis */
+.analysis-wrap{text-align:center;padding:32px 0}
+.analysis-heading{font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--navy);margin-bottom:28px}
+.analysis-steps{display:flex;flex-direction:column;gap:16px;text-align:left;max-width:360px;margin:0 auto}
+.analysis-step{display:flex;align-items:center;gap:12px;opacity:.3;transition:opacity .4s ease}
+.analysis-step.active,.analysis-step.done{opacity:1}
+.analysis-step-icon{width:24px;height:24px;flex-shrink:0;position:relative}
+.analysis-spinner{position:absolute;top:2px;left:2px}
+.analysis-check{position:absolute;top:2px;left:2px;opacity:0;transition:opacity .3s}
+.analysis-step.active .analysis-spinner{animation:spin 1s linear infinite}
+.analysis-step.done .analysis-spinner{opacity:0}
+.analysis-step.done .analysis-check{opacity:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.analysis-step-text{font-size:14px;color:var(--gray-700);font-weight:500}
+
+/* Interstitial */
+.interstitial{display:none;text-align:center;padding:40px 0}
+.interstitial.show{display:block}
+.interstitial img{width:100px;height:100px;border-radius:50%;object-fit:cover;margin:0 auto 20px;border:3px solid var(--copper)}
+.interstitial h2{font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--navy);margin-bottom:12px;line-height:1.3}
+.interstitial p{font-size:15px;color:var(--gray-600);line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto}
+
+/* Results */
+.result-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);color:var(--white);text-align:center;border-radius:var(--radius-lg);padding:28px 20px;margin-bottom:24px;position:relative;overflow:hidden}
+.result-hero::before{content:'';position:absolute;top:-40%;right:-20%;width:200px;height:200px;background:rgba(255,255,255,.04);border-radius:50%}
+.result-hero-eyebrow{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--copper-soft);margin-bottom:10px;display:block}
+.result-hero-h1{font-family:var(--font-serif);font-size:24px;font-weight:700;line-height:1.25;margin-bottom:10px}
+.result-hero-sub{font-size:14px;line-height:1.55;color:rgba(255,255,255,.85)}
+
+.profile-card{background:linear-gradient(135deg,#fdf6ee 0%,var(--navy-tint) 100%);border:1.5px solid var(--copper);border-radius:var(--radius-lg);padding:22px 18px;margin-bottom:20px}
+.profile-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--copper);margin-bottom:10px;display:block}
+.profile-card h3{font-family:var(--font-serif);font-size:18px;font-weight:700;color:var(--navy);margin-bottom:14px}
+.profile-list{list-style:none;display:flex;flex-direction:column;gap:12px}
+.profile-list li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--gray-700);line-height:1.5}
+.pf-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.pf-warn{background:#fef3c7;color:var(--amber)}
+.pf-danger{background:#fee2e2;color:var(--red)}
+.pf-good{background:#dcfce7;color:var(--green)}
+.pf-info{background:var(--navy-tint);color:var(--navy)}
+.edu-collapse{margin-top:14px;border-top:1px solid var(--gray-200);padding-top:12px}
+.edu-collapse-toggle{font-size:14px;font-weight:600;color:var(--navy);cursor:pointer;display:flex;align-items:center;gap:6px;list-style:none}
+.edu-collapse-toggle::-webkit-details-marker{display:none}
+.edu-collapse-toggle svg{transition:transform .25s}
+details[open] .edu-collapse-toggle svg{transform:rotate(180deg)}
+.edu-collapse-body{padding-top:12px;font-size:14px;color:var(--gray-600);line-height:1.7}
+
+.graph-card{background:var(--white);border-radius:var(--radius-lg);padding:22px 18px;box-shadow:var(--shadow);margin-bottom:20px}
+.graph-card h3{font-family:var(--font-serif);font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.graph-sub{font-size:13px;color:var(--gray-500);margin-bottom:16px}
+.graph-canvas-wrap{position:relative;height:220px;margin-bottom:8px}
+.graph-canvas-wrap canvas{width:100%!important;height:100%!important}
+.graph-legend{display:flex;gap:20px;justify-content:center;margin-top:12px;font-size:12px;color:var(--gray-500)}
+.graph-legend-item{display:flex;align-items:center;gap:6px}
+.graph-legend-swatch{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.graph-legend-swatch[data-color="red"]{background:var(--red)}
+.graph-legend-swatch[data-color="green"]{background:var(--green)}
+.graph-note{font-size:11px;color:var(--gray-400);text-align:center;margin-top:8px}
+
+/* PDP */
+.pdp-section{margin-bottom:24px}
+.pdp-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--copper);margin-bottom:6px;display:block}
+.pdp-transition-h2{font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--navy);margin-bottom:20px}
+.pdp-gallery{margin-bottom:20px}
+.pdp-main-img-wrap{width:100%;aspect-ratio:1/1;border-radius:var(--radius);overflow:hidden;background:var(--gray-100);margin-bottom:10px}
+.pdp-main-img{width:100%;height:100%;object-fit:cover}
+.pdp-thumbs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.pdp-thumb{width:60px;height:60px;border-radius:var(--radius-sm);overflow:hidden;border:2px solid transparent;cursor:pointer;transition:var(--transition);background:var(--gray-100);flex-shrink:0}
+.pdp-thumb.active{border-color:var(--navy)}
+.pdp-thumb img{width:100%;height:100%;object-fit:cover}
+.pdp-title{font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.pdp-stars{font-size:14px;color:var(--amber);margin-bottom:16px}
+.pdp-guarantee{font-size:13px;color:var(--gray-500);text-align:center;margin-bottom:14px;line-height:1.5}
+.pdp-atc-btn{display:block;width:100%;padding:18px 24px;background:#0a1628;color:var(--white);font-size:18px;font-weight:700;border-radius:var(--radius);text-align:center;transition:var(--transition);box-shadow:0 4px 14px rgba(10,22,40,.35);margin-bottom:16px}
+.pdp-atc-btn:hover{background:#060f1c;transform:translateY(-2px)}
+.pdp-specs{margin-bottom:20px}
+.pdp-spec-item{border-bottom:1px solid var(--gray-200)}
+.pdp-spec-toggle{display:flex;align-items:center;justify-content:space-between;padding:14px 0;font-size:15px;font-weight:600;color:var(--gray-700);cursor:pointer;list-style:none}
+.pdp-spec-toggle::-webkit-details-marker{display:none}
+.pdp-spec-chev{transition:transform .25s}
+details[open] .pdp-spec-chev{transform:rotate(180deg)}
+.pdp-spec-body{padding:0 0 14px;font-size:14px;color:var(--gray-600);line-height:1.7}
+
+/* Objection section */
+.objection-section{background:var(--navy-tint);border-radius:var(--radius-lg);padding:22px 18px;margin-bottom:20px}
+.objection-section h3{font-family:var(--font-serif);font-size:18px;font-weight:700;color:var(--navy);margin-bottom:14px}
+.objection-item{margin-bottom:14px}
+.objection-item:last-child{margin-bottom:0}
+.objection-item strong{font-size:14px;color:var(--navy);display:block;margin-bottom:4px}
+.objection-item p{font-size:14px;color:var(--gray-600);line-height:1.55}
+
+/* Testimonials */
+.testi-section{margin-bottom:24px}
+.section-heading{font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.testi-card{background:linear-gradient(135deg,#fdf6ee 0%,#fef9f2 100%);border:1px solid var(--copper);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+.testi-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.testi-name{font-weight:600;font-size:14px;color:var(--navy)}
+.testi-meta{font-size:12px;color:var(--gray-400)}
+.testi-stars{color:var(--amber);font-size:14px;letter-spacing:2px;margin-bottom:6px}
+.testi-body{font-family:var(--font-serif);font-style:italic;font-size:14px;line-height:1.6;color:var(--gray-700);margin-bottom:10px}
+.testi-verified{font-size:11px;font-weight:600;color:var(--green)}
+
+.video-testi-section{margin-bottom:24px}
+.video-testi-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px;display:block}
+.video-testi-row{display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+.video-testi-item{flex:0 0 240px;border-radius:var(--radius);overflow:hidden;background:#000}
+.video-testi-item video{width:100%;display:block}
+
+.matters-section{margin-bottom:24px}
+.matters-heading{font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--navy);margin-bottom:16px}
+
+.timeline-section{margin-bottom:24px}
+.timeline{position:relative;padding-left:28px}
+.timeline-item{position:relative;padding-bottom:20px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-marker{position:absolute;left:-28px;top:0;display:flex;flex-direction:column;align-items:center}
+.timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--copper);border:2px solid var(--white);box-shadow:0 0 0 2px var(--copper);flex-shrink:0}
+.timeline-line{width:2px;flex:1;background:var(--gray-200);margin-top:4px;min-height:20px}
+.timeline-item:last-child .timeline-line{display:none}
+.timeline-content{flex:1}
+.timeline-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--copper);margin-bottom:4px;display:block}
+.timeline-text{font-size:14px;color:var(--gray-700);line-height:1.5}
+
+.faq-section{margin-bottom:24px}
+.faq-heading{font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.faq-item{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;font-size:14px;font-weight:600;color:var(--gray-800);cursor:pointer;transition:var(--transition);gap:10px;width:100%;text-align:left}
+.faq-q:hover{background:var(--gray-50)}
+.faq-chev{width:16px;height:16px;flex-shrink:0;transition:transform .25s ease;color:var(--gray-400)}
+.faq-item.open .faq-chev{transform:rotate(180deg)}
+.faq-a-inner{padding:0 16px 14px;font-size:13px;color:var(--gray-600);line-height:1.7}
+
+.sticky-bottom{position:fixed;bottom:0;left:0;width:100%;background:#0a1628;padding:12px 20px;z-index:9998;display:none;box-shadow:0 -4px 20px rgba(0,0,0,.25);padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.sticky-bottom.show{display:block}
+.sticky-bottom-inner{max-width:680px;margin:0 auto;text-align:center}
+.sticky-bottom-btn{display:block;padding:10px 28px;background:var(--white);color:#0a1628;font-size:16px;font-weight:700;border-radius:var(--radius-sm);transition:var(--transition);text-align:center}
+.sticky-bottom-btn:hover{background:var(--gray-100)}
+
+.dim{font-size:11px;color:var(--gray-400);line-height:1.6;margin-top:24px;text-align:center}
+.divider{height:1px;background:var(--gray-200);margin:20px 0}
+
+@media(max-width:600px){
+.quiz-wrap{padding:16px 14px 110px}
+.question-text{font-size:22px}
+.option-card{padding:14px 16px;font-size:14px}
+.result-hero{padding:22px 16px}
+.result-hero-h1{font-size:21px}
+.result-hero-sub{font-size:13px}
+.doc-big{padding:20px 16px}
+.doc-big img{width:72px;height:72px}
+.doc-big blockquote{font-size:14px;padding-left:12px}
+.pdp-thumb{width:52px;height:52px}
+.video-testi-item{flex:0 0 200px}
+.flash{font-size:14px}
+.profile-card{padding:18px 14px}
+.graph-card{padding:18px 14px}
+.graph-canvas-wrap{height:180px}
+.testi-card{padding:14px}
+.testi-body{font-size:13px}
+.faq-q{padding:12px 14px;font-size:13px}
+.faq-a-inner{padding:0 14px 12px;font-size:12px}
+.interstitial h2{font-size:19px}
+.interstitial p{font-size:14px}
+}
+@media(max-width:420px){
+.quiz-wrap{padding:14px 12px 100px}
+.question-text{font-size:20px}
+.gender-grid{gap:10px}
+.gender-card{padding:22px 12px}
+.age-grid{grid-template-columns:repeat(2,1fr)}
+.sticky-bottom-btn{width:100%;padding:12px 20px}
+.landing-stats{flex-direction:column;gap:0}
+.landing-stat{padding:10px 8px;border-bottom:1px solid var(--gray-200)}
+.landing-stat:last-child{border-bottom:none}
+.doc-big blockquote::before{display:none}
+}
+@media(hover:none){
+.option-card:hover{transform:none;box-shadow:none;border-color:var(--gray-200)}
+.option-card.selected:hover{border-color:var(--navy);box-shadow:0 0 0 1px var(--navy)}
+.gender-card:hover{transform:none;box-shadow:none}
+.cta-btn:hover{transform:none}
+.pdp-atc-btn:hover{transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+<div class="quiz-wrap">
+
+<!-- SCREEN: GENDER + AGE -->
+<div class="screen active visible" id="screen-2">
+  <h1 style="font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--navy);line-height:1.3;margin-bottom:6px;text-align:center">The problem was never your cholesterol level.</h1>
+  <p style="font-size:14px;color:var(--gray-500);text-align:center;margin-bottom:20px;line-height:1.5">A retired heart surgeon explains what your doctor missed&hairsp;&mdash;&hairsp;and what 247,891 people already figured out.</p>
+  <div class="doc-card">
+    <img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/Screenshot_2026-06-05_at_8.27.02_PM.png?v=1780655229" alt="Dr. Steven Gundry" />
+    <div class="doc-card-body"><strong>Dr. Steven Gundry, MD</strong><span class="doc-card-title">Retired Heart Surgeon &middot; Stopped prescribing statins 15 years ago</span></div>
+  </div>
+  <h2 class="question-text">Let me ask you a couple of things so I can show you what applies to your situation.</h2>
+  <div class="gender-grid">
+    <button class="gender-card" data-gender="male"><span class="gender-icon">&#9794;</span><span class="gender-label">Male</span></button>
+    <button class="gender-card" data-gender="female"><span class="gender-icon">&#9792;</span><span class="gender-label">Female</span></button>
+  </div>
+  <div class="age-band" id="age-band" hidden>
+    <h3 class="age-band-label">What is your age range?</h3>
+    <div class="age-grid">
+      <button class="option-card" data-age="35-44">35-44</button>
+      <button class="option-card" data-age="45-54">45-54</button>
+      <button class="option-card" data-age="55-64">55-64</button>
+      <button class="option-card" data-age="65-74">65-74</button>
+      <button class="option-card" data-age="75+">75+</button>
+    </div>
+  </div>
+  <p class="brand-promise"><em>Your answers are private and never shared.</em></p>
+</div>
+
+<!-- Q1: CURRENT PROTOCOL -->
+<div class="screen" id="screen-q1">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+  <span class="q-counter">QUESTION 2 OF 8</span>
+  <h2 class="question-text">What are you currently doing about your cholesterol?</h2>
+  <div class="options-wrap">
+    <button class="option-card" data-key="statin" data-question="q1">I&rsquo;m on a statin (Lipitor, Crestor, Zocor, etc.)</button>
+    <button class="option-card" data-key="supplements" data-question="q1">I take supplements (bergamot, red yeast rice, fish oil, etc.)</button>
+    <button class="option-card" data-key="both" data-question="q1">I&rsquo;m on a statin AND I take supplements</button>
+    <button class="option-card" data-key="nothing" data-question="q1">Nothing right now</button>
+  </div>
+  <div class="flash" data-flash-for="statin"><span class="flash-eyebrow">What your doctor won&rsquo;t say</span><p>You already knew something was off. Statins block your body from <em>making</em> cholesterol. But they never clear the cholesterol <strong>already stuck in your arteries.</strong> That is the part nobody told you. Not because they did not know. Because there is no $29 billion drug for it.</p></div>
+  <div class="flash" data-flash-for="supplements"><span class="flash-eyebrow">What your doctor won&rsquo;t say</span><p>Your gut told you there was a better way than pills. You were right. But most supplement companies put their formula in a capsule that <strong>loses 85% to stomach acid.</strong> You had the right idea. You just got the wrong delivery.</p></div>
+  <div class="flash" data-flash-for="both"><span class="flash-eyebrow">What your doctor won&rsquo;t say</span><p>You did more than most people ever do. Statin for production, supplements for support. But the statin only blocks one pathway, and the capsule supplements never survived your stomach. <strong>You were not failing. The system was not designed to let you succeed.</strong></p></div>
+  <div class="flash" data-flash-for="nothing"><span class="flash-eyebrow">What your doctor won&rsquo;t say</span><p>Good. That might be the smartest move you have made. Most people spend years on something that only addresses half the problem before they find this. <strong>You skipped the expensive mistake.</strong></p></div>
+  <button class="cta-btn continue-btn" data-continue>Continue &rarr;</button>
+</div>
+
+<!-- Q2: WHICH STATIN (conditional) -->
+<div class="screen" id="screen-q2" data-conditional="statin,both">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+  <span class="q-counter">QUESTION 3 OF 8</span>
+  <h2 class="question-text">Which statin are you taking?</h2>
+  <div class="options-wrap">
+    <button class="option-card" data-key="lipitor" data-question="q2">Lipitor (Atorvastatin)</button>
+    <button class="option-card" data-key="crestor" data-question="q2">Crestor (Rosuvastatin)</button>
+    <button class="option-card" data-key="zocor" data-question="q2">Zocor (Simvastatin)</button>
+    <button class="option-card" data-key="pravachol" data-question="q2">Pravachol (Pravastatin)</button>
+    <button class="option-card" data-key="livalo" data-question="q2">Livalo (Pitavastatin)</button>
+    <button class="option-card" data-key="other-statin" data-question="q2">Other / Not sure</button>
+  </div>
+  <div class="flash" data-flash-for="lipitor"><span class="flash-eyebrow">You probably already suspected this</span><p>Lipitor: <strong>$141 billion in lifetime sales.</strong> You do not build a $141 billion market by curing people. A BMJ analysis of 4.1 million patients confirmed what you felt: muscle pain in 29%, cognitive decline in 15%, diabetes risk up 13%. You were not imagining it.</p></div>
+  <div class="flash" data-flash-for="crestor"><span class="flash-eyebrow">You probably already suspected this</span><p>Crestor is marketed as the &ldquo;super statin.&rdquo; A JAMA study found <strong>25% higher new-onset diabetes</strong> vs. other statins. A stronger drug does not mean a healthier heart. If something felt wrong about that prescription, your instinct was right.</p></div>
+  <div class="flash" data-flash-for="zocor"><span class="flash-eyebrow">You probably already suspected this</span><p>The FDA issued a <strong>dose-limitation warning on Zocor in 2011</strong> after severe muscle damage at the highest dose. If your doctor never mentioned this, ask yourself why. You deserved to know before you swallowed the next pill.</p></div>
+  <div class="flash" data-flash-for="pravachol"><span class="flash-eyebrow">You probably already suspected this</span><p>Pravachol is called the &ldquo;gentlest&rdquo; statin. <strong>It still depletes CoQ10.</strong> The difference between gentle and aggressive is the speed the damage accumulates. Not whether it accumulates. There is no such thing as a safe statin. Only a slower one.</p></div>
+  <div class="flash" data-flash-for="livalo"><span class="flash-eyebrow">You probably already suspected this</span><p>Livalo&rsquo;s clinical trials were smaller, shorter, and <strong>funded entirely by the manufacturer.</strong> &ldquo;Better tolerated&rdquo; does not mean it works. No statin clears plaque. Not one. If you felt like something was missing, you were right.</p></div>
+  <div class="flash" data-flash-for="other-statin"><span class="flash-eyebrow">You probably already suspected this</span><p>Every statin blocks the same enzyme. <strong>None of them clear cholesterol already stuck in your arteries.</strong> Different brand names, same half-solution. If you have felt like something was missing from your treatment, trust that feeling.</p></div>
+  <button class="cta-btn continue-btn" data-continue>Continue &rarr;</button>
+</div>
+
+<!-- Q3: SIDE EFFECTS (conditional checkbox) -->
+<div class="screen" id="screen-q3" data-conditional="statin,both">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+  <span class="q-counter">QUESTION 4 OF 8</span>
+  <h2 class="question-text">Have you experienced any of these since starting your medication?</h2>
+  <p class="q-subtitle">Select all that apply.</p>
+  <div class="checkbox-wrap" data-question="q3">
+    <label class="checkbox-item" data-key="muscle"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Muscle pain, weakness, or cramping</span></label>
+    <label class="checkbox-item" data-key="brainfog"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Brain fog or memory problems</span></label>
+    <label class="checkbox-item" data-key="fatigue"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Fatigue or low energy</span></label>
+    <label class="checkbox-item" data-key="joint"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Joint pain or stiffness</span></label>
+    <label class="checkbox-item" data-key="sexual"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Sexual dysfunction</span></label>
+    <label class="checkbox-item" data-key="none" data-exclusive="true"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">None of these</span></label>
+  </div>
+  <button class="cta-btn continue-btn" data-continue>Continue &rarr;</button>
+  <div class="flash flash-empathy" id="flash-q3"><span class="flash-eyebrow">You are not crazy</span><p>If anyone ever made you feel like you were imagining these symptoms, read this: statins deplete CoQ10 from every muscle in your body, including your heart. <strong>What you are feeling is the predictable consequence of the drug.</strong> Your body has been telling you something for months. Maybe years. You were right to listen.</p></div>
+</div>
+
+<!-- Q4: LDL NUMBER -->
+<div class="screen" id="screen-q4">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+  <span class="q-counter">QUESTION 5 OF 8</span>
+  <h2 class="question-text">Do you know your most recent LDL number?</h2>
+  <p class="q-subtitle">This is the number your doctor focuses on. It is not the number that matters most.</p>
+  <div class="options-wrap">
+    <button class="option-card" data-key="under100" data-question="q4">Under 100 (doctor says it&rsquo;s good)</button>
+    <button class="option-card" data-key="100-150" data-question="q4">Between 100 and 150</button>
+    <button class="option-card" data-key="150-200" data-question="q4">Between 150 and 200</button>
+    <button class="option-card" data-key="over200" data-question="q4">Over 200</button>
+    <button class="option-card" data-key="unknown" data-question="q4">I don&rsquo;t know my number</button>
+  </div>
+  <div class="flash flash-navy" data-flash-for="under100"><span class="flash-eyebrow">This is the part they leave out</span><p>Your doctor told you this number is good. Here is what they did not tell you: <strong>the problem was never how much cholesterol your body makes. It is the LDL lingering in your bloodstream because nothing is clearing it.</strong> I have operated on hundreds of people with &ldquo;perfect&rdquo; LDL. Their arteries told a different story. If you sensed the number did not mean you were safe, you were right.</p></div>
+  <div class="flash" data-flash-for="100-150"><span class="flash-eyebrow">This is the part they leave out</span><p>Most doctors call this &ldquo;fine.&rdquo; But LDL between 100 and 150 can mask a dangerous problem: <strong>your body is producing cholesterol at a manageable rate, but nothing is clearing what is already stuck in your arteries.</strong> The number looks stable while damage builds underneath. If something felt incomplete about your doctor&rsquo;s reassurance, trust that feeling.</p></div>
+  <div class="flash" data-flash-for="150-200"><span class="flash-eyebrow">This is the part they leave out</span><p>This is the range where most doctors reach for the prescription pad. But <strong>the problem was never the number. It is the LDL lingering in your bloodstream because your clearance system was never addressed.</strong> This is also the range where the right intervention makes the biggest difference. You found this at the right time.</p></div>
+  <div class="flash" data-flash-for="over200"><span class="flash-eyebrow">This is the part they leave out</span><p>LDL over 200 is serious. But here is what most doctors will not say: <strong>the number is high because your clearance system is overwhelmed, not just because production is too high.</strong> Blocking production with a statin is half an answer. You need both sides addressed. And that is exactly what most treatments fail to do.</p></div>
+  <div class="flash" data-flash-for="unknown"><span class="flash-eyebrow">This is the part they leave out</span><p>Not knowing your number is more common than you think. But here is what matters more: <strong>the problem was never the number itself. It is whether your body is clearing the LDL already in your bloodstream.</strong> Most doctors never test for that. What you learn in the next 60 seconds will change how you think about cholesterol.</p></div>
+  <button class="cta-btn continue-btn" data-continue>Continue &rarr;</button>
+</div>
+
+<!-- Q5: CALCIUM SCORE -->
+<div class="screen" id="screen-q5">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+  <span class="q-counter">QUESTION 6 OF 8</span>
+  <h2 class="question-text">Have you ever had a coronary calcium score test?</h2>
+  <div class="options-wrap">
+    <button class="option-card" data-key="low" data-question="q5">Yes, my score was low (under 100)</button>
+    <button class="option-card" data-key="high" data-question="q5">Yes, my score was concerning (100+)</button>
+    <button class="option-card" data-key="never" data-question="q5">No, I&rsquo;ve never had one</button>
+    <button class="option-card" data-key="dunno" data-question="q5">I don&rsquo;t know what that is</button>
+  </div>
+  <div class="flash" data-flash-for="low"><span class="flash-eyebrow">Good sign, but keep reading</span><p>A low score is encouraging. But it only measures hard, calcified plaque. <strong>Soft plaque, the kind that ruptures and causes heart attacks, does not show up on this test.</strong> If your LDL clearance is not working, soft plaque can still be building. A low calcium score is a reason for hope, not a reason to stop looking.</p></div>
+  <div class="flash" data-flash-for="high"><span class="flash-eyebrow">You already know something is wrong</span><p>That number confirms what you probably already felt. Plaque is building. <strong>But knowing it puts you ahead of 90% of people who never get tested.</strong> The question is what you do with this information. That is why the next screen matters.</p></div>
+  <div class="flash" data-flash-for="never"><span class="flash-eyebrow">Ask yourself why they never ordered it</span><p>The calcium score tells you whether plaque is building in your arteries. <strong>Your LDL number does not.</strong> Most doctors never order this test. If you have been on a statin for years and nobody ever checked whether it was actually working inside your arteries, you were being managed. Not treated.</p></div>
+  <div class="flash" data-flash-for="dunno"><span class="flash-eyebrow">Ask yourself why they never mentioned it</span><p>The calcium score measures actual plaque in your arteries. <strong>It tells you more about your heart disease risk than LDL ever could.</strong> Most doctors never bring it up. If the result contradicted the drug they prescribed, would they want you to know?</p></div>
+  <button class="cta-btn continue-btn" data-continue>Continue &rarr;</button>
+</div>
+
+<!-- Q6: PRIMARY CONCERN -->
+<div class="screen" id="screen-q6">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+  <span class="q-counter">QUESTION 7 OF 8</span>
+  <h2 class="question-text">What worries you most right now?</h2>
+  <p class="q-subtitle">Be honest. There is no wrong answer.</p>
+  <div class="options-wrap">
+    <button class="option-card" data-key="numbers" data-question="q6">My numbers will not come down no matter what I do</button>
+    <button class="option-card" data-key="sideeffects" data-question="q6">The side effects are getting worse and I feel trapped</button>
+    <button class="option-card" data-key="family" data-question="q6">I have watched family members die from heart disease</button>
+    <button class="option-card" data-key="getoff" data-question="q6">I want off statins but I am terrified to stop</button>
+    <button class="option-card" data-key="distrust" data-question="q6">I no longer trust what I am being told about my health</button>
+  </div>
+  <div class="flash" data-flash-for="numbers"><span class="flash-eyebrow">You were right to be frustrated</span><p>You did what you were told. The numbers did not move. <strong>That was not your failure. That was the approach failing you.</strong> Your body produces cholesterol through one pathway and clears it through another. Everything you were given only addressed one side. Of course the numbers did not move. Nobody gave you the full picture.</p></div>
+  <div class="flash" data-flash-for="sideeffects"><span class="flash-eyebrow">You should not have to live like this</span><p>Choosing between managing your cholesterol and being able to function is not a real choice. <strong>The side effects you feel are your body telling you the drug is causing harm.</strong> You are not being dramatic. You are not &ldquo;sensitive.&rdquo; You were right to question it. A different path exists.</p></div>
+  <div class="flash flash-empathy" data-flash-for="family"><span class="flash-eyebrow">You are not powerless</span><p>Fathers. Mothers. Grandparents who took every pill they were told to take. <strong>If you are here because you watched that happen to someone you love, I need you to know: their story does not have to be yours.</strong> You are looking for a different answer. That already separates you from the people who trusted the system without question.</p></div>
+  <div class="flash" data-flash-for="getoff"><span class="flash-eyebrow">You are not trapped</span><p>I can not stand watching doctors put people on statins for life without ever offering them a way out. <strong>That fear of stopping was put there on purpose. It keeps $29 billion flowing every year.</strong> 95% of patients who transition under physician supervision get off statins within 60 days with better numbers than they had on the drug. You are not stuck.</p></div>
+  <div class="flash" data-flash-for="distrust"><span class="flash-eyebrow">Your instinct was right</span><p>What you have been told about cholesterol is incomplete. <strong>LDL is not &ldquo;bad cholesterol.&rdquo; The real problem is LDL lingering in your bloodstream because your clearance system was never addressed.</strong> If you have felt for years that something about the standard advice did not add up, trust that feeling. You were right.</p></div>
+  <button class="cta-btn continue-btn" data-continue>Continue &rarr;</button>
+</div>
+
+<!-- Q7: WHAT MATTERS MOST (checkbox) -->
+<div class="screen" id="screen-q7">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+  <span class="q-counter">QUESTION 8 OF 8</span>
+  <h2 class="question-text">What matters most to you in a cholesterol solution?</h2>
+  <p class="q-subtitle">Select all that apply.</p>
+  <div class="checkbox-wrap" data-question="q7">
+    <label class="checkbox-item" data-key="research"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Backed by real clinical research</span></label>
+    <label class="checkbox-item" data-key="nosideeffects"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Zero side effects</span></label>
+    <label class="checkbox-item" data-key="alongside"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Can take alongside my current medication</span></label>
+    <label class="checkbox-item" data-key="results30"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Visible results within 30 days</span></label>
+    <label class="checkbox-item" data-key="doctormade"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Doctor-formulated, not a supplement brand</span></label>
+    <label class="checkbox-item" data-key="guarantee"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Money-back guarantee if numbers do not improve</span></label>
+    <label class="checkbox-item" data-key="dualpathway"><div class="cb-box"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="2.5 7 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Addresses both production AND clearance</span></label>
+  </div>
+  <button class="cta-btn continue-btn" data-continue>See My Results &rarr;</button>
+</div>
+
+<!-- ANALYSIS -->
+<div class="screen" id="screen-analysis">
+  <div class="analysis-wrap" id="analysis-main">
+    <div class="doc-card" style="display:inline-flex;margin-bottom:24px">
+      <img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/Screenshot_2026-06-05_at_8.27.02_PM.png?v=1780655229" alt="Dr. Steven Gundry" style="width:48px;height:48px" />
+      <div class="doc-card-body"><strong>Dr. Steven Gundry, MD</strong><span class="doc-card-title">Retired Heart Surgeon</span></div>
+    </div>
+    <h2 class="analysis-heading">Reviewing your answers...</h2>
+    <div class="analysis-steps">
+      <div class="analysis-step" data-step="1"><div class="analysis-step-icon"><svg class="analysis-spinner" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#ddd" stroke-width="2.5"/><path d="M10 2a8 8 0 0 1 8 8" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round"/></svg><svg class="analysis-check" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--green)"/><polyline points="6 10 9 13 14 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="analysis-step-text">Reviewing your current protocol...</span></div>
+      <div class="analysis-step" data-step="2"><div class="analysis-step-icon"><svg class="analysis-spinner" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#ddd" stroke-width="2.5"/><path d="M10 2a8 8 0 0 1 8 8" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round"/></svg><svg class="analysis-check" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--green)"/><polyline points="6 10 9 13 14 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="analysis-step-text">Cross-referencing with clinical data...</span></div>
+      <div class="analysis-step" data-step="3"><div class="analysis-step-icon"><svg class="analysis-spinner" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#ddd" stroke-width="2.5"/><path d="M10 2a8 8 0 0 1 8 8" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round"/></svg><svg class="analysis-check" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--green)"/><polyline points="6 10 9 13 14 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="analysis-step-text">Assessing your risk factors...</span></div>
+      <div class="analysis-step" data-step="4"><div class="analysis-step-icon"><svg class="analysis-spinner" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#ddd" stroke-width="2.5"/><path d="M10 2a8 8 0 0 1 8 8" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round"/></svg><svg class="analysis-check" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--green)"/><polyline points="6 10 9 13 14 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="analysis-step-text">Calculating your clearance gap...</span></div>
+      <div class="analysis-step" data-step="5"><div class="analysis-step-icon"><svg class="analysis-spinner" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#ddd" stroke-width="2.5"/><path d="M10 2a8 8 0 0 1 8 8" stroke="var(--navy)" stroke-width="2.5" stroke-linecap="round"/></svg><svg class="analysis-check" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--green)"/><polyline points="6 10 9 13 14 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="analysis-step-text">Building your personalized recommendation...</span></div>
+    </div>
+  </div>
+  <div class="interstitial" id="analysis-interstitial">
+    <img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/Screenshot_2026-06-05_at_8.27.02_PM.png?v=1780655229" alt="Dr. Steven Gundry" />
+    <h2>Everything you suspected? There is proof.</h2>
+    <p>I walked away from a $2 million-a-year surgical practice because I could not keep operating on people who should never have been on my table. After 10,000 surgeries, I stopped cutting and started asking why. What I found changed everything I believed about cholesterol. Based on your answers, I can show you exactly where your current approach is falling short.</p>
+    <button class="cta-btn" id="see-results-btn">See What I Found &rarr;</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen results-screen" id="screen-results">
+  <div class="result-hero">
+    <span class="result-hero-eyebrow">YOUR CHOLESTEROL ASSESSMENT</span>
+    <h1 class="result-hero-h1" id="result-hero-h1"></h1>
+    <p class="result-hero-sub" id="result-hero-sub"></p>
+  </div>
+
+  <div class="profile-card">
+    <span class="profile-eyebrow">YOUR CHOLESTEROL PROFILE</span>
+    <h3 id="profile-title">What Your Doctor Never Addressed</h3>
+    <ul class="profile-list" id="profile-list"></ul>
+    <details class="edu-collapse"><summary class="edu-collapse-toggle">View full analysis <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></summary><div class="edu-collapse-body" id="full-analysis-body"></div></details>
+  </div>
+
+  <div class="doc-big">
+    <img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/Screenshot_2026-06-05_at_8.27.02_PM.png?v=1780655229" alt="Dr. Steven Gundry" />
+    <strong class="doc-big-name">Dr. Steven Gundry, MD</strong>
+    <span class="doc-big-creds">Retired Heart Surgeon &middot; Stopped prescribing statins 15 years ago</span>
+    <blockquote id="doc-big-quote"></blockquote>
+  </div>
+
+  <div class="graph-card">
+    <h3>Your Projected LDL Trajectory</h3>
+    <p class="graph-sub">Based on your answers, here is what the next 6 months could look like</p>
+    <div class="graph-canvas-wrap"><canvas id="ldl-chart"></canvas></div>
+    <div class="graph-legend"><div class="graph-legend-item"><span class="graph-legend-swatch" data-color="red"></span><span>Current Path (no change)</span></div><div class="graph-legend-item"><span class="graph-legend-swatch" data-color="green"></span><span>With Healthy Blood</span></div></div>
+    <p class="graph-note">Projection based on average clinical outcomes. Individual results vary.</p>
+  </div>
+
+  <div class="objection-section">
+    <h3>Before You Decide</h3>
+    <div class="objection-item"><strong>Can I take this alongside my statin?</strong><p>Yes. Start Healthy Blood alongside your current medication. After 30 days, get bloodwork and show your doctor. 95% of patients who transition under physician supervision get off statins within 60 days with better numbers than they had on the drug.</p></div>
+    <div class="objection-item"><strong>Why is this different from supplements I have tried?</strong><p>Two reasons. Sublingual delivery: 95% bioavailability vs. 15% for capsules. Dual-pathway action: addresses both production AND clearance. No capsule supplement does either. If past supplements did not move your numbers, the delivery failed you. Not the other way around.</p></div>
+    <div class="objection-item"><strong>What if it does not work?</strong><p>Get bloodwork at day 30. If your LDL has not improved, full refund. No questions. You keep the bottles.</p></div>
+    <div class="objection-item"><strong>Is this a subscription?</strong><p>No. One-time purchase. No auto-ship. No hidden charges. No fine print. You order what you want and that is it. If you want more later, you come back and order again on your terms.</p></div>
+  </div>
+
+  <div class="pdp-section">
+    <span class="pdp-eyebrow">MATCHED TO YOUR PROFILE</span>
+    <h2 class="pdp-transition-h2">What I Built After I Stopped Operating</h2>
+    <div class="pdp-gallery">
+      <div class="pdp-main-img-wrap"><img id="pdpMain" class="pdp-main-img" src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Luxury_Box_Bottle_1080.webp?v=1780556018" alt="Healthy Blood" /></div>
+      <div class="pdp-thumbs">
+        <button class="pdp-thumb active" data-img="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Luxury_Box_Bottle_1080.webp?v=1780556018"><img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Luxury_Box_Bottle_1080.webp?v=1780556018" alt="Product" /></button>
+        <button class="pdp-thumb" data-img="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/hf_20260528_091643_0752e344-ac1c-446f-9c9a-cd7aef88e38f.webp?v=1780556017"><img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/hf_20260528_091643_0752e344-ac1c-446f-9c9a-cd7aef88e38f.webp?v=1780556017" alt="Details" /></button>
+        <button class="pdp-thumb" data-img="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Why_Choose_Infographic_1080.webp?v=1780556018"><img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Why_Choose_Infographic_1080.webp?v=1780556018" alt="Why choose" /></button>
+        <button class="pdp-thumb" data-img="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_How_To_Use_1080.webp?v=1780556017"><img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_How_To_Use_1080.webp?v=1780556017" alt="How to use" /></button>
+        <button class="pdp-thumb" data-img="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Ingredient_Showcase_1080.webp?v=1780556018"><img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Ingredient_Showcase_1080.webp?v=1780556018" alt="Ingredients" /></button>
+        <button class="pdp-thumb" data-img="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Satisfaction_Guarantee_1080.webp?v=1780556018"><img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/HealthyBlood_Satisfaction_Guarantee_1080.webp?v=1780556018" alt="Guarantee" /></button>
+      </div>
+    </div>
+    <div class="pdp-info">
+      <h2 class="pdp-title">Healthy Blood&trade; Sublingual Formula</h2>
+      <div class="pdp-stars">&#9733;&#9733;&#9733;&#9733;&#9733; 1,847+ verified reviews</div>
+      <p class="pdp-guarantee">30-day money-back guarantee. If your LDL does not drop, full refund. You keep the bottles.</p>
+      <a href="https://www.tryhealthyblood.com/pages/k-page" class="pdp-atc-btn" id="pdp-atc-btn">Get Healthy Blood Now &rarr;</a>
+      <div class="pdp-specs">
+        <details class="pdp-spec-item"><summary class="pdp-spec-toggle">Ingredients <svg class="pdp-spec-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></summary><div class="pdp-spec-body"><p>Clinical-grade Bergamot Polyphenolic Fraction (BPF) from Calabria, Italy. CoQ10 (Ubiquinol). Vitamin K2 (MK-7). Omega-3 (EPA/DHA). Plant sterol complex. Black seed oil extract. Sublingual absorption matrix.</p></div></details>
+        <details class="pdp-spec-item"><summary class="pdp-spec-toggle">How It Works <svg class="pdp-spec-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></summary><div class="pdp-spec-body"><p>Sublingual liquid drops. Place under tongue for 7 seconds, swallow. Bypasses digestive system entirely. 95% bioavailability vs. 15% for capsules. Active compounds reach your bloodstream before a capsule would begin dissolving.</p></div></details>
+        <details class="pdp-spec-item"><summary class="pdp-spec-toggle">Sourcing <svg class="pdp-spec-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></summary><div class="pdp-spec-body"><p>Bergamot sourced exclusively from Calabria, Italy. Third-party tested for potency, purity, and heavy metals. GMP-certified facility. Made in the USA.</p></div></details>
+      </div>
+    </div>
+  </div>
+
+  <div class="matters-section" id="matters-section" style="display:none">
+    <h3 class="matters-heading">What You Said Matters Most</h3>
+    <ul class="profile-list" id="matters-list"></ul>
+  </div>
+
+  <div class="timeline-section">
+    <h3 class="section-heading">What To Expect</h3>
+    <div class="timeline">
+      <div class="timeline-item"><div class="timeline-marker"><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-content"><span class="timeline-label">Day 1-3</span><p class="timeline-text">First dose. Sublingual absorption begins in 7 seconds.</p></div></div>
+      <div class="timeline-item"><div class="timeline-marker"><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-content"><span class="timeline-label">Week 1-2</span><p class="timeline-text">Brain fog lifts. Energy returns. CoQ10 replenishes.</p></div></div>
+      <div class="timeline-item"><div class="timeline-marker"><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-content"><span class="timeline-label">Week 3</span><p class="timeline-text">Inflammation drops. Weight starts moving.</p></div></div>
+      <div class="timeline-item"><div class="timeline-marker"><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-content"><span class="timeline-label">Day 30</span><p class="timeline-text">Get bloodwork done. Average LDL drop: 67 points.</p></div></div>
+      <div class="timeline-item"><div class="timeline-marker"><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-content"><span class="timeline-label">Day 60</span><p class="timeline-text">LDL receptors reactivate. Clearance system restores.</p></div></div>
+      <div class="timeline-item"><div class="timeline-marker"><div class="timeline-dot"></div></div><div class="timeline-content"><span class="timeline-label">Day 90+</span><p class="timeline-text">Arterial plaque markers decline. Doctor asks what you are taking.</p></div></div>
+    </div>
+  </div>
+
+  <div class="testi-section">
+    <h3 class="section-heading">Real Results</h3>
+    <div class="testi-card"><div class="testi-head"><div><div class="testi-name">James W., 73</div><div class="testi-meta">Denver, CO</div></div></div><div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="testi-body">&ldquo;LDL was 289. Scheduled for triple bypass. My daughter found Healthy Blood. 8 weeks later my surgeon cancelled the surgery. LDL was 141.&rdquo;</p><span class="testi-verified">&#10003; VERIFIED PURCHASE</span></div>
+    <div class="testi-card"><div class="testi-head"><div><div class="testi-name">Patricia M., 58</div><div class="testi-meta">Scottsdale, AZ</div></div></div><div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="testi-body">&ldquo;My husband had 70% blockage. I ordered Healthy Blood without telling him. 18 months later: 31%. His cardiologist ordered 6 bottles for himself.&rdquo;</p><span class="testi-verified">&#10003; VERIFIED PURCHASE</span></div>
+    <div class="testi-card"><div class="testi-head"><div><div class="testi-name">Angela R., NP-C, 49</div><div class="testi-meta">Charlotte, NC</div></div></div><div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="testi-body">&ldquo;I am a nurse practitioner. I ordered Healthy Blood to prove it was BS. LDL went from 192 to 128 in 6 weeks.&rdquo;</p><span class="testi-verified">&#10003; VERIFIED PURCHASE</span></div>
+    <div class="testi-card"><div class="testi-head"><div><div class="testi-name">David K., 64</div><div class="testi-meta">Austin, TX</div></div></div><div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="testi-body">&ldquo;Lost my father at 63 and mother at 69. Both on statins. Both dead. Started Healthy Blood. LDL: 224 to 118. My doctor said my bloodwork looks like a 30-year-old&rsquo;s.&rdquo;</p><span class="testi-verified">&#10003; VERIFIED PURCHASE</span></div>
+  </div>
+
+  <div class="video-testi-section">
+    <span class="video-testi-eyebrow">VIDEO TESTIMONIALS</span>
+    <div class="video-testi-row">
+      <div class="video-testi-item"><video src="https://cdn.shopify.com/videos/c/o/v/5cd6617dab6b47d4891df5e91374c859.mp4" preload="metadata" playsinline controls></video></div>
+      <div class="video-testi-item"><video src="https://cdn.shopify.com/videos/c/o/v/2b8909e8a3f24b619ad2e83bab1400ab.mp4" preload="metadata" playsinline controls></video></div>
+      <div class="video-testi-item"><video src="https://cdn.shopify.com/videos/c/o/v/9c977abfe3924a878356a952fbf0ecb4.mp4" preload="metadata" playsinline controls></video></div>
+      <div class="video-testi-item"><video src="https://cdn.shopify.com/videos/c/o/v/9a9ffb9304af4c41bfad38b82dcf000b.mp4" preload="metadata" playsinline controls></video></div>
+    </div>
+  </div>
+
+  <div class="faq-section">
+    <h3 class="faq-heading">Frequently Asked Questions</h3>
+    <div class="faq-container">
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">How is this different from other bergamot supplements? <svg class="faq-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></button><div class="faq-a" hidden><div class="faq-a-inner"><p>Sublingual delivery (95% bioavailability vs 15% for capsules). Clinical-grade BPF from Calabria, Italy. Dual-pathway action targeting both production and clearance. If you tried bergamot capsules and your numbers did not move, the delivery failed you. This is a different approach entirely.</p></div></div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">How long until I see results? <svg class="faq-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></button><div class="faq-a" hidden><div class="faq-a-inner"><p>Energy and clarity within 1-2 weeks. Measurable LDL drop by day 30. Deeper arterial changes at 60-90 days. Get bloodwork at day 30 and compare.</p></div></div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Is this a subscription? Will I get charged again? <svg class="faq-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></button><div class="faq-a" hidden><div class="faq-a-inner"><p>No. One-time purchase. No hidden subscription, no auto-ship, no fine print. You order what you want and that is it. We do not do the tricks other supplement companies pull.</p></div></div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Why have I never heard of this? <svg class="faq-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></button><div class="faq-a" hidden><div class="faq-a-inner"><p>In 1987, the same year Merck patented the first statin, citrus bergamot and red yeast rice were quietly dropped from pharmaceutical journals. You can not patent a plant. A $29 billion market does not build itself on compounds anyone can grow. If you suspected the system was not set up in your favor, you were right.</p></div></div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Is there scientific evidence? <svg class="faq-chev" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 5 7 9 11 5"/></svg></button><div class="faq-a" hidden><div class="faq-a-inner"><p>4 independent clinical trials (2014-2022) at the University of Catanzaro. 40+ peer-reviewed papers by Dr. Vincenzo Mollace. 38% average LDL reduction. 41% drop in arterial plaque markers. 22% HDL increase. This is not anecdotal. It is published research.</p></div></div></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-bottom:20px"><a href="https://www.tryhealthyblood.com/pages/k-page" class="pdp-atc-btn" style="display:inline-block;width:auto;padding:16px 40px">Get Healthy Blood Now &rarr;</a></div>
+
+  <p class="dim">Your assessment results are personalized to your answers. Individual results vary. Healthy Blood is not intended to diagnose, treat, cure, or prevent any disease. Consult your physician before making changes to your medication.</p>
+</div>
+
+</div>
+
+<div class="sticky-bottom" id="sticky-bottom"><div class="sticky-bottom-inner"><a href="https://www.tryhealthyblood.com/pages/k-page" class="sticky-bottom-btn">Get Healthy Blood Now &rarr;</a></div></div>
+
+<script>
+(function(){
+var A={},H=['screen-2','screen-q1','screen-q2','screen-q3','screen-q4','screen-q5','screen-q6','screen-q7','screen-analysis','screen-results'],cur='screen-2',hist=['screen-2'];
+var PB=document.getElementById('progress-bar'),SB=document.getElementById('sticky-bottom');
+
+function shouldShow(id){var el=document.getElementById(id);if(!el)return false;var c=el.dataset.conditional;if(!c)return true;return c.split(',').indexOf(A.q1)!==-1;}
+function getActive(){return H.filter(shouldShow);}
+function updateProgress(){var s=getActive(),i=s.indexOf(cur);if(i<0)i=0;PB.style.width=Math.round((i/(s.length-1))*100)+'%';}
+function goTo(id){
+  var c=document.getElementById(cur);c.classList.remove('visible');
+  setTimeout(function(){c.classList.remove('active');var n=document.getElementById(id);n.classList.add('active');
+  requestAnimationFrame(function(){requestAnimationFrame(function(){n.classList.add('visible');});});
+  cur=id;hist.push(id);updateProgress();window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='screen-analysis')runAnalysis();if(id==='screen-results')buildResults();},280);
+}
+function goBack(){if(hist.length<=1)return;hist.pop();var prev=hist[hist.length-1];var c=document.getElementById(cur);c.classList.remove('visible');
+setTimeout(function(){c.classList.remove('active');var n=document.getElementById(prev);n.classList.add('active');requestAnimationFrame(function(){requestAnimationFrame(function(){n.classList.add('visible');});});cur=prev;updateProgress();window.scrollTo({top:0,behavior:'smooth'});},280);}
+function getNext(fid){var a=getActive(),i=a.indexOf(fid);return i<a.length-1?a[i+1]:null;}
+
+document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',goBack);});
+
+// Gender
+document.querySelectorAll('[data-gender]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-gender]').forEach(function(g){g.classList.remove('selected');});this.classList.add('selected');A.gender=this.dataset.gender;document.getElementById('age-band').hidden=false;});});
+// Age
+document.querySelectorAll('[data-age]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-age]').forEach(function(a){a.classList.remove('selected');});this.classList.add('selected');A.age=this.dataset.age;setTimeout(function(){goTo(getNext('screen-2'));},400);});});
+
+// Option cards - select + show flash + reveal continue (NO auto-advance)
+document.querySelectorAll('.option-card[data-question]').forEach(function(card){
+  card.addEventListener('click',function(){
+    var q=this.dataset.question,k=this.dataset.key,scr=this.closest('.screen');
+    scr.querySelectorAll('.option-card[data-question="'+q+'"]').forEach(function(c){c.classList.remove('selected');});
+    this.classList.add('selected');A[q]=k;
+    scr.querySelectorAll('.flash').forEach(function(f){f.classList.remove('show');});
+    var fl=scr.querySelector('.flash[data-flash-for="'+k+'"]');if(fl)fl.classList.add('show');
+    var btn=scr.querySelector('[data-continue]');if(btn)btn.classList.add('revealed');
+  });
+});
+
+// Checkboxes
+document.querySelectorAll('.checkbox-item').forEach(function(item){
+  item.addEventListener('click',function(e){e.preventDefault();
+    var grp=this.closest('.checkbox-wrap'),q=grp.dataset.question,exc=this.dataset.exclusive==='true';
+    if(exc){grp.querySelectorAll('.checkbox-item').forEach(function(i){i.classList.remove('checked');});this.classList.add('checked');}
+    else{var ex=grp.querySelector('[data-exclusive]');if(ex)ex.classList.remove('checked');this.classList.toggle('checked');}
+    var checked=[];grp.querySelectorAll('.checkbox-item.checked').forEach(function(i){checked.push(i.dataset.key);});A[q]=checked;
+    var btn=this.closest('.screen').querySelector('[data-continue]');if(btn){if(checked.length>0)btn.classList.add('revealed');else btn.classList.remove('revealed');}
+    if(q==='q3'&&checked.length>0&&checked.indexOf('none')===-1){var fl=document.getElementById('flash-q3');if(fl)fl.classList.add('show');}
+  });
+});
+
+// Continue buttons
+document.querySelectorAll('[data-continue]').forEach(function(btn){
+  btn.addEventListener('click',function(){var scr=this.closest('.screen');goTo(getNext(scr.id));});
+});
+
+// Analysis with interstitial
+function runAnalysis(){
+  var steps=document.querySelectorAll('.analysis-step'),main=document.getElementById('analysis-main'),inter=document.getElementById('analysis-interstitial'),i=0;
+  main.style.display='';inter.classList.remove('show');
+  steps.forEach(function(s){s.classList.remove('done','active');});
+  function next(){if(i>0)steps[i-1].classList.add('done');if(i<steps.length){steps[i].classList.add('active');i++;setTimeout(next,1400);}
+  else{setTimeout(function(){main.style.display='none';inter.classList.add('show');},800);}
+  }setTimeout(next,600);
+}
+document.getElementById('see-results-btn').addEventListener('click',function(){goTo('screen-results');});
+
+// Build results
+function buildResults(){buildHero();buildProfile();buildQuote();buildChart();buildMatters();setTimeout(function(){SB.classList.add('show');},2500);}
+
+function buildHero(){
+  var h=document.getElementById('result-hero-h1'),s=document.getElementById('result-hero-sub');
+  if(A.q1==='statin'||A.q1==='both'){h.textContent='You Were Right To Question Your Statin.';s.textContent='Your statin blocks cholesterol production. But nothing is clearing the LDL already stuck in your arteries. You sensed something was missing. Here is the proof.';}
+  else if(A.q1==='supplements'){h.textContent='Your Instinct Was Right. The Delivery Was Wrong.';s.textContent='You chose supplements over drugs. That was smart. But capsule delivery loses 85% to stomach acid before it ever reaches your blood. The formula was fine. The delivery failed you.';}
+  else{h.textContent='You Found This Before Most People Do.';s.textContent='Most people take statins for years before they learn what you are about to learn. You skipped the expensive mistake. Here is what your doctor should have told you from the start.';}
+}
+
+function buildProfile(){
+  var list=document.getElementById('profile-list'),items=[];
+  if(A.q1==='statin'||A.q1==='both'){items.push(['pf-warn','!','Your statin blocks production but nothing is clearing the LDL already in your arteries']);items.push(['pf-danger','!','CoQ10 depletion from your statin may be causing the symptoms you were told to ignore']);}
+  if(A.q1==='supplements'||A.q1==='both')items.push(['pf-info','i','Your supplements use capsule delivery: 85% destroyed by stomach acid before reaching your blood']);
+  if(A.q1==='nothing')items.push(['pf-warn','!','Without intervention, LDL continues lingering in your bloodstream unchecked']);
+  if(A.q4==='under100')items.push(['pf-warn','!','A "good" LDL number does not mean plaque is being cleared. You were right to question it']);
+  else if(A.q4==='over200')items.push(['pf-danger','!','LDL over 200: your clearance system is overwhelmed. The number is a symptom, not the cause']);
+  else if(A.q4==='150-200')items.push(['pf-warn','!','LDL 150-200: this is where intervention makes the biggest difference. You found this at the right time']);
+  if(A.q5==='never'||A.q5==='dunno')items.push(['pf-info','?','No calcium score on file. The number that actually shows plaque buildup has never been measured']);
+  else if(A.q5==='high')items.push(['pf-danger','!','Elevated calcium score confirms plaque your statin was supposed to prevent']);
+  items.push(['pf-good','&#10003;','Dual-pathway approach addresses both production AND clearance. This is the gap nobody told you about']);
+  list.innerHTML=items.map(function(it){return '<li><span class="pf-icon '+it[0]+'">'+it[1]+'</span><span>'+it[2]+'</span></li>';}).join('');
+  var body=document.getElementById('full-analysis-body'),txt='The problem was never your cholesterol level. It is the LDL lingering in your bloodstream because your clearance system was never addressed. ';
+  if(A.q1==='statin'||A.q1==='both')txt+='Your statin reduces cholesterol production. But it does nothing to clear the LDL particles already embedded in your artery walls. That is the gap nobody told you about. ';
+  txt+='The dual-pathway approach addresses both production (reducing new cholesterol) and clearance (reactivating LDL receptors to remove existing deposits). This is what Healthy Blood was built to do. And it is why your instinct to look beyond statins was right.';
+  body.innerHTML='<p>'+txt+'</p>';
+}
+
+function buildQuote(){
+  var q=document.getElementById('doc-big-quote');
+  if(A.q6==='family')q.textContent='I can not stand what this system did to families like yours. People who did everything right, took every pill, followed every instruction, and still ended up in my operating room. Their trust was not the problem. The approach was. I built this formula because I refused to keep watching it happen.';
+  else if(A.q6==='sideeffects')q.textContent='I can not stand doctors who tell their patients the side effects are "worth it." Your muscles ache because the drug is depleting CoQ10. Your brain fogs because cholesterol is essential for cognitive function. These are not trade-offs. They are damage. You were right to question it.';
+  else if(A.q6==='getoff')q.textContent='I can not stand watching doctors put people on statins for life and never offering a way out. In 37 years, I have seen what happens when people stay on statins for decades. I have also seen what happens when they transition to a dual-pathway approach. The second group lives better. You already know this.';
+  else q.textContent='After 10,000 surgeries, I stopped operating and started asking why so many patients with "perfect" cholesterol ended up on my table. The answer was simple: their doctors were treating the wrong number. The problem was never high cholesterol. It was LDL lingering in their bloodstream because nothing was clearing it.';
+}
+
+function buildChart(){
+  var sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js';
+  sc.onload=function(){
+    var ctx=document.getElementById('ldl-chart').getContext('2d');
+    var s=180;if(A.q4==='under100')s=95;else if(A.q4==='100-150')s=130;else if(A.q4==='150-200')s=175;else if(A.q4==='over200')s=230;
+    var lb=['Now','Mo 1','Mo 2','Mo 3','Mo 4','Mo 5','Mo 6'];
+    var cp=[s,s+2,s+5,s+5,s+8,s+10,s+12];
+    var hb=[s,Math.round(s*.82),Math.round(s*.70),Math.round(s*.62),Math.round(s*.58),Math.round(s*.55),Math.round(s*.53)];
+    new Chart(ctx,{type:'line',data:{labels:lb,datasets:[
+      {label:'Current',data:cp,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.08)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#dc2626',borderWidth:2.5},
+      {label:'Healthy Blood',data:hb,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.08)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#16a34a',borderWidth:2.5}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{title:{display:true,text:'LDL (mg/dL)',font:{size:11}},grid:{color:'rgba(0,0,0,.06)'},ticks:{font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  };document.head.appendChild(sc);
+}
+
+function buildMatters(){
+  var list=document.getElementById('matters-list'),sec=document.getElementById('matters-section');
+  if(!A.q7||!A.q7.length){sec.style.display='none';return;}
+  sec.style.display='';
+  var M={research:['Backed by published clinical research','4 independent trials. 40+ peer-reviewed papers. University of Catanzaro. Not anecdotal.'],nosideeffects:['Zero side effects','Natural compounds. No CoQ10 depletion. No muscle pain. No brain fog. No trade-offs.'],alongside:['Safe alongside your current medication','Start alongside your statin. Get bloodwork at day 30. Adjust with your doctor as your numbers improve.'],results30:['Measurable results within 30 days','Average LDL drop of 67 points by day 30. You will see it in your bloodwork.'],doctormade:['Built by a surgeon who stopped prescribing statins','Dr. Gundry walked away from a $2M practice to build this. Not a supplement brand. A surgeon.'],guarantee:['Full refund if your numbers do not improve','Get bloodwork at day 30. If LDL has not dropped, full refund. You keep the bottles. No questions.'],dualpathway:['Addresses both production AND clearance','The only formula targeting both pathways. This is the gap your doctor never mentioned.']};
+  list.innerHTML=A.q7.map(function(k){var m=M[k];if(!m)return '';return '<li><span class="pf-icon pf-good">&#10003;</span><div><strong>'+m[0]+'</strong><br><span class="small-text" style="text-align:left">'+m[1]+'</span></div></li>';}).join('');
+}
+
+// PDP thumbs
+document.querySelectorAll('.pdp-thumb').forEach(function(t){t.addEventListener('click',function(){document.querySelectorAll('.pdp-thumb').forEach(function(x){x.classList.remove('active');});this.classList.add('active');document.getElementById('pdpMain').src=this.dataset.img;});});
+
+// FAQ
+document.querySelectorAll('.faq-q').forEach(function(q){q.addEventListener('click',function(){var item=this.closest('.faq-item'),open=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open');i.querySelector('.faq-q').setAttribute('aria-expanded','false');i.querySelector('.faq-a').hidden=true;});if(!open){item.classList.add('open');this.setAttribute('aria-expanded','true');item.querySelector('.faq-a').hidden=false;}});});
+
+// Track
+try{navigator.sendBeacon&&navigator.sendBeacon('https://healthyblood-dashboard.netlify.app/.netlify/functions/track',JSON.stringify({event:'quiz_load',site:'healthyblood-quiz',ts:Date.now()}));}catch(e){}
+})();
+</script>
+</body>
+</html>
