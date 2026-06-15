@@ -287,30 +287,40 @@ details[open] .pdp-spec-chev{transform:rotate(180deg)}
 
 <div class="quiz-wrap">
 
-<!-- SCREEN: GENDER + AGE -->
+<!-- SCREEN 1: GENDER — simple, frictionless entry -->
 <div class="screen active visible" id="screen-2">
+  <h2 class="question-text" style="text-align:center;margin-top:28px">To get started &mdash; are you a man or a woman?</h2>
+  <div class="gender-grid">
+    <button class="gender-card" data-gender="male"><span class="gender-icon">&#9794;</span><span class="gender-label">Male</span></button>
+    <button class="gender-card" data-gender="female"><span class="gender-icon">&#9792;</span><span class="gender-label">Female</span></button>
+  </div>
+  <p class="brand-promise"><em>Takes 60 seconds &middot; Your answers are private.</em></p>
+</div>
+
+<!-- SCREEN 2: AGE — separate question -->
+<div class="screen" id="screen-age">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+  <h2 class="question-text">And what is your age range?</h2>
+  <div class="age-grid">
+    <button class="option-card" data-age="35-44">35-44</button>
+    <button class="option-card" data-age="45-54">45-54</button>
+    <button class="option-card" data-age="55-64">55-64</button>
+    <button class="option-card" data-age="65-74">65-74</button>
+    <button class="option-card" data-age="75+">75+</button>
+  </div>
+</div>
+
+<!-- SCREEN 3: INTRO / HOOK — moved here so the entry stays simple -->
+<div class="screen" id="screen-intro">
+  <button class="back-btn" data-back><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
   <h1 style="font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--navy);line-height:1.3;margin-bottom:6px;text-align:center">The problem was never your cholesterol level.</h1>
   <p style="font-size:14px;color:var(--gray-500);text-align:center;margin-bottom:20px;line-height:1.5">A retired heart surgeon explains what your doctor missed&hairsp;&mdash;&hairsp;and what 247,891 people already figured out.</p>
   <div class="doc-card">
     <img src="https://cdn.shopify.com/s/files/1/0789/7792/5341/files/Screenshot_2026-06-05_at_8.27.02_PM.png?v=1780655229" alt="Dr. Steven Gundry" />
     <div class="doc-card-body"><strong>Dr. Steven Gundry, MD</strong><span class="doc-card-title">Retired Heart Surgeon &middot; Stopped prescribing statins 15 years ago</span></div>
   </div>
-  <h2 class="question-text">Let me ask you a couple of things so I can show you what applies to your situation.</h2>
-  <div class="gender-grid">
-    <button class="gender-card" data-gender="male"><span class="gender-icon">&#9794;</span><span class="gender-label">Male</span></button>
-    <button class="gender-card" data-gender="female"><span class="gender-icon">&#9792;</span><span class="gender-label">Female</span></button>
-  </div>
-  <div class="age-band" id="age-band" hidden>
-    <h3 class="age-band-label">What is your age range?</h3>
-    <div class="age-grid">
-      <button class="option-card" data-age="35-44">35-44</button>
-      <button class="option-card" data-age="45-54">45-54</button>
-      <button class="option-card" data-age="55-64">55-64</button>
-      <button class="option-card" data-age="65-74">65-74</button>
-      <button class="option-card" data-age="75+">75+</button>
-    </div>
-  </div>
-  <p class="brand-promise"><em>Your answers are private and never shared.</em></p>
+  <p style="font-size:14px;color:var(--gray-600);text-align:center;margin-bottom:20px;line-height:1.6">Answer a few quick questions and I&rsquo;ll show you exactly what applies to your situation.</p>
+  <button class="cta-btn" data-continue>Continue &rarr;</button>
 </div>
 
 <!-- Q1: CURRENT PROTOCOL -->
@@ -619,7 +629,7 @@ details[open] .pdp-spec-chev{transform:rotate(180deg)}
 })();
 
 (function(){
-var A={},H=['screen-2','screen-q1','screen-q2','screen-q3','screen-q4','screen-q5','screen-q6','screen-q7','screen-analysis','screen-results'],cur='screen-2',hist=['screen-2'];
+var A={},H=['screen-2','screen-age','screen-intro','screen-q1','screen-q2','screen-q3','screen-q4','screen-q5','screen-q6','screen-q7','screen-analysis','screen-results'],cur='screen-2',hist=['screen-2'];
 var PB=document.getElementById('progress-bar'),SB=document.getElementById('sticky-bottom');
 
 function shouldShow(id){var el=document.getElementById(id);if(!el)return false;var c=el.dataset.conditional;if(!c)return true;return c.split(',').indexOf(A.q1)!==-1;}
@@ -641,9 +651,9 @@ function getNext(fid){var a=getActive(),i=a.indexOf(fid);return i<a.length-1?a[i
 document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',goBack);});
 
 // Gender
-document.querySelectorAll('[data-gender]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-gender]').forEach(function(g){g.classList.remove('selected');});this.classList.add('selected');A.gender=this.dataset.gender;document.getElementById('age-band').hidden=false;try{window.__HB_TRACK__('answer',{answer_key:'gender',answer_value:this.dataset.gender});}catch(e){}});});
+document.querySelectorAll('[data-gender]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-gender]').forEach(function(g){g.classList.remove('selected');});this.classList.add('selected');A.gender=this.dataset.gender;try{window.__HB_TRACK__('answer',{answer_key:'gender',answer_value:this.dataset.gender});}catch(e){}setTimeout(function(){goTo('screen-age');},400);});});
 // Age
-document.querySelectorAll('[data-age]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-age]').forEach(function(a){a.classList.remove('selected');});this.classList.add('selected');A.age=this.dataset.age;try{window.__HB_TRACK__('answer',{answer_key:'age',answer_value:this.dataset.age});}catch(e){}setTimeout(function(){goTo(getNext('screen-2'));},400);});});
+document.querySelectorAll('[data-age]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('[data-age]').forEach(function(a){a.classList.remove('selected');});this.classList.add('selected');A.age=this.dataset.age;try{window.__HB_TRACK__('answer',{answer_key:'age',answer_value:this.dataset.age});}catch(e){}setTimeout(function(){goTo(getNext('screen-age'));},400);});});
 
 // Option cards - select + show flash + reveal continue (NO auto-advance)
 document.querySelectorAll('.option-card[data-question]').forEach(function(card){
